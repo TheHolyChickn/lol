@@ -10,12 +10,16 @@ class DamageCalc {
   public static double addBuffs = 5.6;
   public static double strAddBuffs = 1.05;
   public static double cdAddBuffs = 1;
+  public static double intAddBuffs = 1;
+  public static boolean mage = false;
   public static int powerLVL;
   public static int stoneLVL;
   public static int timeLVL;
+  public static int wisdomLVL;
   public static ArrayList<Double> multiBuffs = new ArrayList<Double>();
   public static ArrayList<Double> strMultiBuffs = new ArrayList<Double>();
   public static ArrayList<Double> cdMultiBuffs = new ArrayList<Double>();
+  public static ArrayList<Double> intMultiBuffs = new ArrayList<Double>();
   
   public static void main(String[] args) {
     Scanner input = new Scanner(System.in);
@@ -35,6 +39,7 @@ class DamageCalc {
       addBuffs = 3.1;
       strAddBuffs = 1.1;
       cdAddBuffs = 1.1;
+      intAddBuffs = 1.1;
     }
     else{
       addBuffs = 3.1;
@@ -61,6 +66,7 @@ class DamageCalc {
     if(input.nextInt()==1){
       System.out.println("Enter your intelligence pre-multipliers and pre-blessings");
       intel += input.nextDouble();
+      mage=true;
     }
 
     //power blessing
@@ -77,6 +83,13 @@ class DamageCalc {
     System.out.println("Enter time blessing lvl");
     timeLVL = input.nextInt();
     convertTime(timeLVL);
+
+    //wisdom blessing
+    if(mage==true){
+      System.out.println("Enter wisdom blessing lvl");
+    wisdomLVL = input.nextInt();
+    convertWisdom(wisdomLVL);
+    }
 
     //additive buffs
     System.out.println("Enter every additive buff, pressing enter between each one. Enter 0 when you are finished. Do not enter combat level or gdrag buffs.");
@@ -125,6 +138,23 @@ class DamageCalc {
       cdMultiBuffs.add(temp3);
       temp3 = input.nextDouble();
     }
+      if(mage==true){
+      //additive intel damage buffs
+      System.out.println("Enter every additive intelligence buff, pressing enter between each one. Enter 0 when you are finished.");
+      temp3 = input.nextDouble();
+      while(temp3 != 0){
+        intAddBuffs += temp3;
+        temp3 = input.nextDouble();
+      }
+    //multiplicative intel buffs
+      System.out.println("Enter every multiplicative intelligence buff, pressing enter between each one. Enter 0 when you are finished.");
+      temp3 = input.nextDouble();
+      while(temp3 != 0){
+        intMultiBuffs.add(temp3);
+        temp3 = input.nextDouble();
+      }
+    }
+
     //damage resistance
     System.out.println("Enter the mob's defense");
     def = input.nextDouble();
@@ -146,11 +176,31 @@ class DamageCalc {
       }
     }
     
+    //calculating final intel
+    if(mage==true){
+      intel = intel * intAddBuffs;
+      if(intMultiBuffs.size() > 0){
+        for(int i = 0; i < intMultiBuffs.size(); i++){
+          intel *= intMultiBuffs.get(i);
+        }
+      }
+    }
+
     //calculating theoretical dmg
-    damage = dmg * (1 + (str / 100)) * (1 + (cd / 100)) * addBuffs;
-    if(multiBuffs.size() > 0){
-      for(int i = 0; i < multiBuffs.size(); i++){
-        damage *= multiBuffs.get(i);
+    if(mage==true){
+      damage = dmg * (1 + (str / 100)) * (1 + (cd / 100)) * (0.3 + (intel * 0.0009)) * addBuffs;
+      if(multiBuffs.size() > 0){
+        for(int i = 0; i < multiBuffs.size(); i++){
+          damage *= multiBuffs.get(i);
+        }
+      }
+    }
+    else{
+      damage = dmg * (1 + (str / 100)) * (1 + (cd / 100)) * addBuffs;
+      if(multiBuffs.size() > 0){
+        for(int i = 0; i < multiBuffs.size(); i++){
+          damage *= multiBuffs.get(i);
+        }
       }
     }
     damage *= def;
@@ -175,5 +225,11 @@ class DamageCalc {
     str += flatBuff;
     double multiBuff = 1 + (1.1 * 1.2 * 0.02 * time);
     strMultiBuffs.add(multiBuff);
+  }
+  public static void convertWisdom(int wisdom){
+    double flatBuff = 1.1 * 1.2 * 4 * wisdom;
+    intel += flatBuff;
+    double multiBuff = 1 + (1.1 * 1.2 * 0.02 * wisdom);
+    intMultiBuffs.add(multiBuff);
   }
 }
