@@ -1,0 +1,1 @@
+hey guys so if i have a python script that auto creates a latex file or maybe it does something else and I want it to like run when I press a keybind (eg: i press ctrl+shift+y and it runs a specific script) how do i go about setting this up?
