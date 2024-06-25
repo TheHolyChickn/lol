@@ -1,11 +1,13 @@
 # importing packages
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import random
 import pandas as pd
-from matplotlib.backends.backend_pdf import PdfPages
+from concurrent.futures import ProcessPoolExecutor
+#from matplotlib.backends.backend_pdf import PdfPages
+
 
 def randowo() -> int:
-    return random.randrange(300, 307, 1)
+    return random.randint(300, 307)
 
 def rollHandle(drop1: float, drop2: float, scores: int, cap: int) -> bool:
     roll = random.random()
@@ -23,192 +25,58 @@ def rollHandle(drop1: float, drop2: float, scores: int, cap: int) -> bool:
             else:
                 return False
 
-def tmoe617Simulator(toggleScore: int, xlist: list, ylist: list) -> int:
-    xx = []
-    yy = []
-    score = 0
-    handles = 0
-    addScore = (36 * score) / (231599)
-    runs = 0
-    droprate = ((18 + addScore) * (1 + (5735 / (13895 + addScore)))) / (13895 + addScore)
-    droprateOff = (18 * (1 + (5735 / 13895))) / 13895
-    while (runs < 100000):
-        roll = rollHandle(droprate, droprateOff, score, toggleScore)
-        if roll:
-            handles +=1
-            xx.append(score)
-            yy.append(toggleScore)
-            if score >= toggleScore:
-                if score >= 231599:
-                    score = randowo()
-                else:
-                    score += randowo()
-            if score < toggleScore:
-                score = randowo()
-        if not roll:
-            score += randowo()
-        runs +=1
-    xlist.append(xx)
-    ylist.append(yy)
-    return handles
+def tmoe617Simulator(toggleScore: int) -> int:
+    #initializing basic variables
+    score = 0 #saves score in the current meter
+    handles = 0 #total number of handles
+    runs = 0 #total number of runs completed, kills loop at 100k
+    addScore = (36 * score) / (231599) #the weight increase from meter
+    droprate = ((18 + addScore) * (1 + (5735 / (13895 + addScore)))) / (13895 + addScore) #handle droprate with meter
+    droprateOff = (18 * (1 + (5735 / 13895))) / 13895 #handle droprate without meter
+    while (runs < 100000): #simulates 100,000 runs with toggleScore
+        roll = rollHandle(droprate, droprateOff, score, toggleScore) #first handle roll
+        kismetRoll = rollHandle(droprate, droprateOff, score, toggleScore) #kismetted handle roll, only calls if kismet is called
+        #---------------------------------------------------------------------------------------------------------------------------------------
+        if roll: #if a handle was rolled
+            handles +=1 #increase handle counter
+            if score >= toggleScore: #if the score is higher than the score at which meter is toggled (meter is off)
+                if score >= 231599: #resets score if its also higher than meter itself (it was a meter handle which we toggled back on for)
+                    score = randowo() #resets score
+                else: #if it was not higher than the meter itself (not a meter handle AND meter is off)
+                    score += randowo() #increases score
+            if score < toggleScore: #if the score is LOWER than the score at which meter is toggled (meter is on)
+                score = randowo() #resets score
+        #---------------------------------------------------------------------------------------------------------------------------------------
+        if not roll: #if a handle was NOT rolled, roll again with kismet
+            if kismetRoll: #if kismet roll drops handle
+                handles += 1 #increae handle counter
+                if score >= toggleScore: #if meter is off (it cannot be above meter here)
+                    score += randowo() #increase score
+                if score < toggleScore: #if meter is on
+                    score = randowo() #reset score
+            if not kismetRoll: #if kismet still doesnt give handle
+                score += randowo() #increase score
+        runs +=1 #increase run counter
+    return handles #return the number of handles
 
-def callTmoe617Simulator(xlist: list, ylist: list, handlesList: list):
-    for i in range(0,231):
-        r = 1000*i
-        handlesList.append(tmoe617Simulator(r, xlist, ylist))
-'''
-def averageHandleScore(averages: list, xlist: list):
-    for i in range(0,len(xlist)):
-        avg = 0
-        for j in range(0,len(xlist[i])):
-            avg += xlist[i][j]
-        averages.append(avg/len(xlist[i]))
-'''
+def callTmoe617Simulator(toggleScores: list) -> list:
+    handlesList = []
+    for toggleScore in toggleScores:
+        handlesList.append(tmoe617Simulator(toggleScore))
+    return handlesList
 
-x1 = []
-x2 = []
-x3 = []
-x4 = []
-x5 = []
-x6 = []
-x7 = []
-x8 = []
-x9 = []
-x10 = []
-x11 = []
-x12 = []
-x13 = []
-x14 = []
-x15 = []
-x16 = []
-x17 = []
-x18 = []
-x19 = []
-x20 = []
-y1 = []
-y2 = []
-y3 = []
-y4 = []
-y5 = []
-y6 = []
-y7 = []
-y8 = []
-y9 = []
-y10 = []
-y11 = []
-y12 = []
-y13 = []
-y14 = []
-y15 = []
-y16 = []
-y17 = []
-y18 = []
-y19 = []
-y20 = []
-handles1 = []
-handles2 = []
-handles3 = []
-handles4 = []
-handles5 = []
-handles6 = []
-handles7 = []
-handles8 = []
-handles9 = []
-handles10 = []
-handles11 = []
-handles12= []
-handles13 = []
-handles14 = []
-handles15 = []
-handles16 = []
-handles17 = []
-handles18 = []
-handles19 = []
-handles20 = []
-xTensor = [x1,x2,x3,x4,x5,x6,x7,x8,x9,x10,x11,x12,x13,x14,x15,x16,x17,x18,x19,x20]
-yTensor = [y1,y2,y3,y4,y5,y6,y7,y8,y9,y10,y11,y12,y13,y14,y15,y16,y17,y18,y19,y20]
-handlesTensor = [handles1,handles2,handles3,handles4,handles5,handles6,handles7,handles8,handles9,handles10,handles11,handles12,handles13,handles14,handles15,handles16,handles17,handles18,handles19,handles20]
-for i in range(0,20):
-    callTmoe617Simulator(xTensor[i],yTensor[i],handlesTensor[i])
+def main():
+    num_simulations = 20
+    toggle_scores = [1000 * i for i in range(231)]
 
-'''
-averages1 = []
-averages2 = []
-averages3 = []
-averages4 = []
-averages5 = []
-averages6 = []
-averages7 = []
-averages8 = []
-averages9 = []
-averages10 = []
-averages11= []
-averages12 = []
-averages13 = []
-averages14 = []
-averages15 = []
-averages16 = []
-averages17 = []
-averages18 = []
-averages19 = []
-averages20 = []
-averagesTensor = [averages1, averages2, averages3, averages4, averages5, averages6, averages7, averages8, averages9, averages10, averages11, averages12, averages13, averages14, averages15, averages16, averages17, averages18, averages19, averages20]
-for i in range(0,19):
-    averageHandleScore(averagesTensor[i], xTensor[i])
-'''
-dif = pd.DataFrame({
-    "Trial 1": handles1,    
-    "Trial 2": handles2,
-    "Trial 3": handles3,
-    "Trial 4": handles4,
-    "Trial 5": handles5,
-    "Trial 6": handles6,
-    "Trial 7": handles7,
-    "Trial 8": handles8,
-    "Trial 9": handles9,
-    "Trial 10": handles10,
-    "Trial 11": handles11,
-    "Trial 12": handles12,
-    "Trial 13": handles13,
-    "Trial 14": handles14,
-    "Trial 15": handles15,
-    "Trial 16": handles16,
-    "Trial 17": handles17,
-    "Trial 18": handles18,
-    "Trial 19": handles19,
-    "Trial 20": handles20
-})
-with pd.ExcelWriter('Data for 20 Handle Trials.xlsx') as writer:
-    dif.to_excel(writer)
+    with ProcessPoolExecutor() as executor:
+        futures = [executor.submit(callTmoe617Simulator, toggle_scores) for _ in range(num_simulations)]
+        handlesTensor = [future.result() for future in futures]
 
-''',
-    "Average Score 1": averages1,
-    "Average Score 2": averages2,
-    "Average Score 3": averages3,
-    "Average Score 4": averages4,
-    "Average Score 5": averages5,
-    "Average Score 6": averages6,
-    "Average Score 7": averages7,
-    "Average Score 8": averages8,
-    "Average Score 9": averages9,
-    "Average Score 10": averages10,
-    "Average Score 11": averages11,
-    "Average Score 12": averages12,
-    "Average Score 13": averages13,
-    "Average Score 14": averages14,
-    "Average Score 15": averages15,
-    "Average Score 16": averages16,
-    "Average Score 17": averages17,
-    "Average Score 18": averages18,
-    "Average Score 19": averages19,
-    "Average Score 20": averages20
-    '''
+    dif = pd.DataFrame(handlesTensor).transpose()
+    dif.columns = [f"Trial {i+1}" for i in range(num_simulations)]
+    with pd.ExcelWriter('Data for 20 Handle Trials.xlsx') as writer:
+        dif.to_excel(writer)
 
-''' #create graph
-for i in range(0,len(x)-1):
-    plt.scatter(x[i],y[i])
-plt.xlabel('Score Handle Dropped at')
-plt.ylabel('Score Meter Disabled at')
-plt.title('Simulation owo')
-plt.show()
-'''
+if __name__ == "__main__":
+    main()
